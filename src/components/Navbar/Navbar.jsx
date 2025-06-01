@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
+import SearchBar from '../SearchBar/SearchBar';
 
 const Navbar = () => {
   const { isLoggedIn, user, login, logout } = useAuth();
@@ -39,11 +40,8 @@ const Navbar = () => {
     navigate('/');
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      console.log('Buscando por:', searchTerm);
-    }
+  const handleSearch = (termo) => {
+    navigate(`/busca?q=${encodeURIComponent(termo)}`);
   };
 
   const handleDropdownItemClick = () => {
