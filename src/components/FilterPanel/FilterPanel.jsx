@@ -1,4 +1,4 @@
-// src/components/FilterPanel/FilterPanel.jsx
+// src/components/FilterPanel/FilterPanel.jsx - Versão Compacta
 import React, { useState } from 'react';
 import './FilterPanel.css';
 
@@ -9,9 +9,9 @@ const FilterPanel = ({ filtros, onFiltroChange, onLimparFiltros, isOpen, onToggl
   ]);
 
   const categorias = [
-    { id: 'hamburgueria', nome: 'Hamburgueria', icon: '🍔' },
-    { id: 'pizzaria', nome: 'Pizzaria', icon: '🍕' },
-    { id: 'comida-japonesa', nome: 'Comida Japonesa', icon: '🍱' },
+    { id: 'hamburgueria', nome: 'Burger', icon: '🍔' },
+    { id: 'pizzaria', nome: 'Pizza', icon: '🍕' },
+    { id: 'comida-japonesa', nome: 'Japonês', icon: '🍱' },
     { id: 'acai', nome: 'Açaí', icon: '🍇' },
     { id: 'bebidas', nome: 'Bebidas', icon: '🥤' }
   ];
@@ -19,9 +19,9 @@ const FilterPanel = ({ filtros, onFiltroChange, onLimparFiltros, isOpen, onToggl
   const opcoesOrdenacao = [
     { value: 'distancia', label: 'Distância' },
     { value: 'avaliacao', label: 'Avaliação' },
-    { value: 'tempo_entrega', label: 'Tempo de Entrega' },
-    { value: 'taxa_entrega', label: 'Taxa de Entrega' },
-    { value: 'alfabetico', label: 'Alfabética' }
+    { value: 'tempo_entrega', label: 'Tempo' },
+    { value: 'taxa_entrega', label: 'Taxa' },
+    { value: 'alfabetico', label: 'A-Z' }
   ];
 
   const handlePrecoChange = (tipo, valor) => {
@@ -60,7 +60,7 @@ const FilterPanel = ({ filtros, onFiltroChange, onLimparFiltros, isOpen, onToggl
     <>
       {/* Botão de toggle para mobile */}
       <button className="filter-toggle" onClick={onToggle}>
-        <span className="filter-icon">🔧</span>
+        <span className="filter-icon">⚙️</span>
         <span>Filtros</span>
         {filtrosAtivos > 0 && (
           <span className="filter-badge">{filtrosAtivos}</span>
@@ -86,7 +86,7 @@ const FilterPanel = ({ filtros, onFiltroChange, onLimparFiltros, isOpen, onToggl
 
         <div className="filter-content">
           
-          {/* Categorias */}
+          {/* Categorias - Layout Grid Compacto */}
           <div className="filter-section">
             <h4>Categoria</h4>
             <div className="category-filters">
@@ -103,13 +103,13 @@ const FilterPanel = ({ filtros, onFiltroChange, onLimparFiltros, isOpen, onToggl
             </div>
           </div>
 
-          {/* Faixa de Preço */}
+          {/* Faixa de Preço - Layout Compacto */}
           <div className="filter-section">
-            <h4>Faixa de Preço</h4>
+            <h4>Preço (R$)</h4>
             <div className="price-range">
               <div className="price-inputs">
                 <div className="price-input-group">
-                  <label>Mínimo</label>
+                  <label>Min</label>
                   <input
                     type="number"
                     min="0"
@@ -117,12 +117,12 @@ const FilterPanel = ({ filtros, onFiltroChange, onLimparFiltros, isOpen, onToggl
                     value={faixaPreco[0]}
                     onChange={(e) => handlePrecoChange('min', Number(e.target.value))}
                     className="price-input"
-                    placeholder="R$ 0"
+                    placeholder="0"
                   />
                 </div>
                 <div className="price-separator">até</div>
                 <div className="price-input-group">
-                  <label>Máximo</label>
+                  <label>Max</label>
                   <input
                     type="number"
                     min="0"
@@ -130,16 +130,16 @@ const FilterPanel = ({ filtros, onFiltroChange, onLimparFiltros, isOpen, onToggl
                     value={faixaPreco[1]}
                     onChange={(e) => handlePrecoChange('max', Number(e.target.value))}
                     className="price-input"
-                    placeholder="R$ 100"
+                    placeholder="100"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Avaliação */}
+          {/* Avaliação - Layout Horizontal */}
           <div className="filter-section">
-            <h4>Avaliação Mínima</h4>
+            <h4>Avaliação</h4>
             <div className="rating-filters">
               {[4, 4.5, 5].map(rating => (
                 <button
@@ -173,7 +173,7 @@ const FilterPanel = ({ filtros, onFiltroChange, onLimparFiltros, isOpen, onToggl
               </label>
               
               <div className="input-group">
-                <label>Taxa máxima (R$)</label>
+                <label>Taxa máx (R$)</label>
                 <input
                   type="number"
                   min="0"
@@ -183,12 +183,12 @@ const FilterPanel = ({ filtros, onFiltroChange, onLimparFiltros, isOpen, onToggl
                   onChange={(e) => onFiltroChange('taxaEntregaMaxima', 
                     e.target.value ? Number(e.target.value) : null)}
                   className="filter-input"
-                  placeholder="Ex: 10"
+                  placeholder="10"
                 />
               </div>
 
               <div className="input-group">
-                <label>Tempo máximo (min)</label>
+                <label>Tempo máx (min)</label>
                 <input
                   type="number"
                   min="10"
@@ -198,7 +198,7 @@ const FilterPanel = ({ filtros, onFiltroChange, onLimparFiltros, isOpen, onToggl
                   onChange={(e) => onFiltroChange('tempoEntregaMaximo', 
                     e.target.value ? Number(e.target.value) : null)}
                   className="filter-input"
-                  placeholder="Ex: 60"
+                  placeholder="60"
                 />
               </div>
             </div>
@@ -232,7 +232,7 @@ const FilterPanel = ({ filtros, onFiltroChange, onLimparFiltros, isOpen, onToggl
 
           {/* Ordenação */}
           <div className="filter-section">
-            <h4>Ordenar por</h4>
+            <h4>Ordenar</h4>
             <div className="sort-options">
               <select
                 value={filtros.ordenarPor}
@@ -265,7 +265,7 @@ const FilterPanel = ({ filtros, onFiltroChange, onLimparFiltros, isOpen, onToggl
 
           {/* Raio de Busca */}
           <div className="filter-section">
-            <h4>Raio de Busca</h4>
+            <h4>Distância</h4>
             <div className="radius-filter">
               <input
                 type="range"

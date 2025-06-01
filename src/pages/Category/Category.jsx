@@ -71,7 +71,7 @@ const Category = () => {
       atualizarFiltro('latitude', localizacao.latitude);
       atualizarFiltro('longitude', localizacao.longitude);
     }
-  }, [localizacao?.latitude, localizacao?.longitude, atualizarFiltro]);
+  }, [localizacao.latitude, localizacao.longitude, atualizarFiltro]);
 
   const handleSearch = (termo) => {
     atualizarFiltro('termo', termo);

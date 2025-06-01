@@ -1,9 +1,12 @@
 // src/pages/CadastroUsuario/components/FormularioEntregador.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
+import AuthService from '../../../services/AuthService';
 
 const FormularioEntregador = ({ onVoltar }) => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [modoLogin, setModoLogin] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -43,11 +46,11 @@ const FormularioEntregador = ({ onVoltar }) => {
     return value
       .replace(/[^A-Za-z0-9]/g, '')
       .toUpperCase()
-      .replace(/^([A-Z]{3})(\d)/, '$1$2')
-      .replace(/^([A-Z]{3}\d{1})([A-Z])/, '$1$2')
-      .replace(/^([A-Z]{3}\d{1}[A-Z]{1})(\d)/, '$1$2')
-      .replace(/^([A-Z]{3}\d{1}[A-Z]{1}\d{2})$/, '$1')
-      .slice(0, 7);
+      .replace(/^([A-Z]{3})(\d)/, '$1-$2')
+      .replace(/^([A-Z]{3}-\d{1})([A-Z])/, '$1$2')
+      .replace(/^([A-Z]{3}-\d{1}[A-Z]{1})(\d)/, '$1$2')
+      .replace(/^([A-Z]{3}-\d{1}[A-Z]{1}\d{2})$/, '$1')
+      .slice(0, 8);
   };
 
   // Validações
@@ -114,32 +117,14 @@ const FormularioEntregador = ({ onVoltar }) => {
     setLoading(true);
 
     try {
+      let result;
+
       if (modoLogin) {
-        // Lógica de login
-        const loginData = {
-          dsEmail: formData.email,
-          dsSenha: formData.senha,
-          flTipoUsuario: 'ENTREGADOR'
-        };
-
-        const response = await fetch('http://localhost:8082/entregador/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(loginData),
+        // Lógica de login usando o serviço
+        result = await AuthService.loginEntregador({
+          email: formData.email,
+          senha: formData.senha
         });
-
-        if (response.ok) {
-          const data = await response.json();
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('userType', 'entregador');
-          alert('Login realizado com sucesso!');
-          navigate('/');
-        } else {
-          const errorData = await response.json();
-          alert(errorData.message || 'Erro ao fazer login');
-        }
       } else {
         // Validações finais para cadastro
         const newErrors = {};
@@ -158,38 +143,32 @@ const FormularioEntregador = ({ onVoltar }) => {
           return;
         }
 
-        // Lógica de cadastro
-        const cadastroData = {
-          nmUsuario: formData.nomeCompleto,
-          dsEmail: formData.email,
-          dsSenha: formData.senha,
-          nuCpf: formData.cpf.replace(/\D/g, ''),
-          dsTelefone: formData.telefone.replace(/\D/g, ''),
-          dsPlacaVeiculo: formData.placa,
-          dsNumeroCnh: formData.cnh,
-          dtNascimento: null,
-          nuLatitude: null,
-          nuLongitude: null
-        };
-
-        const response = await fetch('http://localhost:8082/entregador/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(cadastroData),
+        // Lógica de cadastro usando o serviço
+        result = await AuthService.cadastrarEntregador({
+          nomeCompleto: formData.nomeCompleto,
+          email: formData.email,
+          senha: formData.senha,
+          cpf: formData.cpf,
+          telefone: formData.telefone,
+          placa: formData.placa,
+          cnh: formData.cnh
         });
+      }
 
-        if (response.ok) {
-          const data = await response.json();
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('userType', 'entregador');
-          alert('Cadastro realizado com sucesso!');
-          navigate('/');
-        } else {
-          const errorData = await response.json();
-          alert(errorData.message || 'Erro ao cadastrar');
-        }
+      if (result.success) {
+        // Atualizar contexto de autenticação
+        const userData = {
+          name: formData.nomeCompleto || formData.email.split('@')[0],
+          email: formData.email,
+          type: 'entregador'
+        };
+        
+        login(userData, result.token);
+        
+        alert(modoLogin ? 'Login realizado com sucesso!' : 'Cadastro realizado com sucesso!');
+        navigate('/');
+      } else {
+        alert(result.message || 'Erro ao processar solicitação');
       }
     } catch (error) {
       console.error('Erro:', error);
@@ -266,8 +245,8 @@ const FormularioEntregador = ({ onVoltar }) => {
               <input
                 type="text"
                 name="placa"
-                placeholder="Placa do Veículo"
-                maxLength="7"
+                placeholder="Placa do Veículo (ABC-1234 ou ABC1D23)"
+                maxLength="8"
                 value={formData.placa}
                 onChange={handleInputChange}
                 required
@@ -330,7 +309,7 @@ const FormularioEntregador = ({ onVoltar }) => {
         </div>
 
         <button type="button" className="botao-adicional" onClick={toggleModo}>
-          {modoLogin ? 'Já tem conta? Entrar' : 'Não tem conta? Cadastre-se'}
+          {modoLogin ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Entre'}
         </button>
       </form>
     </div>

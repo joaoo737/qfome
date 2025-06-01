@@ -1,9 +1,12 @@
 // src/pages/CadastroUsuario/components/FormularioEmpresa.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
+import AuthService from '../../../services/AuthService';
 
 const FormularioEmpresa = ({ onVoltar }) => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [modoLogin, setModoLogin] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -101,32 +104,14 @@ const FormularioEmpresa = ({ onVoltar }) => {
     setLoading(true);
 
     try {
+      let result;
+
       if (modoLogin) {
-        // Lógica de login
-        const loginData = {
-          dsEmail: formData.email,
-          dsSenha: formData.senha,
-          flTipoUsuario: 'FORNECEDOR'
-        };
-
-        const response = await fetch('http://localhost:8082/fornecedor/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(loginData),
+        // Lógica de login usando o serviço
+        result = await AuthService.loginFornecedor({
+          email: formData.email,
+          senha: formData.senha
         });
-
-        if (response.ok) {
-          const data = await response.json();
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('userType', 'fornecedor');
-          alert('Login realizado com sucesso!');
-          navigate('/fornecedor');
-        } else {
-          const errorData = await response.json();
-          alert(errorData.message || 'Erro ao fazer login');
-        }
       } else {
         // Validações finais para cadastro
         const newErrors = {};
@@ -145,35 +130,31 @@ const FormularioEmpresa = ({ onVoltar }) => {
           return;
         }
 
-        // Lógica de cadastro
-        const cadastroData = {
-          nmUsuario: formData.nomeLoja,
-          dsEmail: formData.email,
-          dsSenha: formData.senha,
-          nuCnpj: formData.cnpj.replace(/\D/g, ''),
-          dsTelefone: formData.telefone.replace(/\D/g, ''),
-          nuLatitude: null,
-          nuLongitude: null
-        };
-
-        const response = await fetch('http://localhost:8082/fornecedor/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(cadastroData),
+        // Lógica de cadastro usando o serviço
+        result = await AuthService.cadastrarFornecedor({
+          nomeLoja: formData.nomeLoja,
+          email: formData.email,
+          senha: formData.senha,
+          cnpj: formData.cnpj,
+          telefone: formData.telefone,
+          endereco: formData.endereco
         });
+      }
 
-        if (response.ok) {
-          const data = await response.json();
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('userType', 'fornecedor');
-          alert('Cadastro realizado com sucesso!');
-          navigate('/fornecedor');
-        } else {
-          const errorData = await response.json();
-          alert(errorData.message || 'Erro ao cadastrar');
-        }
+      if (result.success) {
+        // Atualizar contexto de autenticação
+        const userData = {
+          name: formData.nomeLoja || formData.email.split('@')[0],
+          email: formData.email,
+          type: 'fornecedor'
+        };
+        
+        login(userData, result.token);
+        
+        alert(modoLogin ? 'Login realizado com sucesso!' : 'Cadastro realizado com sucesso!');
+        navigate('/fornecedor');
+      } else {
+        alert(result.message || 'Erro ao processar solicitação');
       }
     } catch (error) {
       console.error('Erro:', error);
@@ -250,7 +231,6 @@ const FormularioEmpresa = ({ onVoltar }) => {
               placeholder="Endereço"
               value={formData.endereco}
               onChange={handleInputChange}
-              required
             />
           </>
         )}
@@ -301,7 +281,7 @@ const FormularioEmpresa = ({ onVoltar }) => {
         </div>
 
         <button type="button" className="botao-adicional" onClick={toggleModo}>
-          {modoLogin ? 'Já tem conta? Entrar' : 'Não tem conta? Cadastre-se'}
+          {modoLogin ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Entre'}
         </button>
       </form>
     </div>

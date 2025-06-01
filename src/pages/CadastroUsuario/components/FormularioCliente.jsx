@@ -1,9 +1,12 @@
 // src/pages/CadastroUsuario/components/FormularioCliente.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../context/AuthContext';
+import AuthService from '../../../services/AuthService';
 
 const FormularioCliente = ({ onVoltar }) => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [modoLogin, setModoLogin] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -99,32 +102,14 @@ const FormularioCliente = ({ onVoltar }) => {
     setLoading(true);
 
     try {
+      let result;
+
       if (modoLogin) {
-        // Lógica de login
-        const loginData = {
-          dsEmail: formData.email,
-          dsSenha: formData.senha,
-          flTipoUsuario: 'CLIENTE'
-        };
-
-        const response = await fetch('http://localhost:8082/cliente/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(loginData),
+        // Lógica de login usando o serviço
+        result = await AuthService.loginCliente({
+          email: formData.email,
+          senha: formData.senha
         });
-
-        if (response.ok) {
-          const data = await response.json();
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('userType', 'cliente');
-          alert('Login realizado com sucesso!');
-          navigate('/');
-        } else {
-          const errorData = await response.json();
-          alert(errorData.message || 'Erro ao fazer login');
-        }
       } else {
         // Validações finais para cadastro
         const newErrors = {};
@@ -143,36 +128,30 @@ const FormularioCliente = ({ onVoltar }) => {
           return;
         }
 
-        // Lógica de cadastro
-        const cadastroData = {
-          nmUsuario: formData.nomeCompleto,
-          dsEmail: formData.email,
-          dsSenha: formData.senha,
-          nuCpf: formData.cpf.replace(/\D/g, ''),
-          dsTelefone: formData.telefone.replace(/\D/g, ''),
-          dtNascimento: null,
-          nuLatitude: null,
-          nuLongitude: null
-        };
-
-        const response = await fetch('http://localhost:8082/cliente/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(cadastroData),
+        // Lógica de cadastro usando o serviço
+        result = await AuthService.cadastrarCliente({
+          nomeCompleto: formData.nomeCompleto,
+          email: formData.email,
+          senha: formData.senha,
+          cpf: formData.cpf,
+          telefone: formData.telefone
         });
+      }
 
-        if (response.ok) {
-          const data = await response.json();
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('userType', 'cliente');
-          alert('Cadastro realizado com sucesso!');
-          navigate('/');
-        } else {
-          const errorData = await response.json();
-          alert(errorData.message || 'Erro ao cadastrar');
-        }
+      if (result.success) {
+        // Atualizar contexto de autenticação
+        const userData = {
+          name: formData.nomeCompleto || formData.email.split('@')[0],
+          email: formData.email,
+          type: 'cliente'
+        };
+        
+        login(userData, result.token);
+        
+        alert(modoLogin ? 'Login realizado com sucesso!' : 'Cadastro realizado com sucesso!');
+        navigate('/');
+      } else {
+        alert(result.message || 'Erro ao processar solicitação');
       }
     } catch (error) {
       console.error('Erro:', error);
@@ -239,7 +218,6 @@ const FormularioCliente = ({ onVoltar }) => {
                 maxLength="15"
                 value={formData.telefone}
                 onChange={handleInputChange}
-                required
               />
             </div>
           </>
@@ -291,7 +269,7 @@ const FormularioCliente = ({ onVoltar }) => {
         </div>
 
         <button type="button" className="botao-adicional" onClick={toggleModo}>
-          {modoLogin ? 'Já tem conta? Entrar' : 'Não tem conta? Cadastre-se'}
+          {modoLogin ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Entre'}
         </button>
       </form>
     </div>
